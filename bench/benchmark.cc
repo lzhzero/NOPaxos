@@ -62,6 +62,8 @@ BenchmarkClient::BenchmarkClient(Client &client, Transport &transport,
     cooldownDone = false;
     _Latency_Init(&latency, "op");
     latencies.reserve(numRequests);
+    stat_second.reserve(numRequests);
+    stat_ns.reserve(numRequests);
 }
 
 void
@@ -113,7 +115,7 @@ BenchmarkClient::CooldownDone()
 
     char buf[1024];
     cooldownDone = true;
-    Notice("Finished cooldown period.");
+    Notice("Finished cooldown period of %d seconds.", warmupSec);
     std::sort(latencies.begin(), latencies.end());
 
     uint64_t ns = latencies[latencies.size()/2];
@@ -164,6 +166,10 @@ BenchmarkClient::OnReply(const string &request, const string &reply)
     if ((started) && (!done) && (n != 0)) {
 	uint64_t ns = Latency_End(&latency);
 	latencies.push_back(ns);
+    stat_second.push_back(latency.defaultFrame.start.tv_sec);
+    stat_ns.push_back(latency.defaultFrame.start.tv_nsec);
+    stat_rtt.push_back(ns);
+
 	if (n > numRequests) {
 	    Finish();
 	}

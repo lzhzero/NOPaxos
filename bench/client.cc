@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
     string latencyFile;
     string latencyRawFile;
-
+    string perThreadFile;
     // Parse arguments
     int opt;
     while ((opt = getopt(argc, argv, "c:d:q:l:m:n:t:w:i:")) != -1) {
@@ -285,12 +285,26 @@ int main(int argc, char **argv)
             latencyRawFile = latencyFile+".raw";
             std::ofstream rawFile(latencyRawFile.c_str(),
                                   std::ios::out | std::ios::binary);
+            int thread_counter = 0;
+            uint64_t stat_time;
             for (auto x : benchClients) {
                 rawFile.write((char *)&x->latencies[0],
                               (x->latencies.size()*sizeof(x->latencies[0])));
                 if (!rawFile) {
                     Warning("Failed to write raw latency output");
                 }
+                Notice("Writting down stats for each thread");
+                perThreadFile = latencyFile + ".thread." + std::to_string(thread_counter);
+                thread_counter ++;
+                std::ofstream ptFile(perThreadFile.c_str());
+                
+                for(int iter_stat = 0; iter_stat < numRequests; iter_stat ++ ){
+                    stat_time = x->stat_second[iter_stat] * 1000000000ll + x->stat_ns[iter_stat];
+                    ptFile << std::to_string(stat_time) << ", " 
+                           << std::to_string(x->stat_rtt[iter_stat]) << "\n";
+                }
+                ptFile.close();
+
             }
             exit(0);
         });

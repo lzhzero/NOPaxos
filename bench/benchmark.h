@@ -50,7 +50,9 @@ public:
     bool cooldownDone;
     int tputInterval;
     std::vector<uint64_t> latencies;
-
+    std::vector<uint32_t> stat_second;
+    std::vector<uint32_t> stat_ns;
+    std::vector<uint64_t> stat_rtt;
 private:
     void SendNext();
     void Finish();
